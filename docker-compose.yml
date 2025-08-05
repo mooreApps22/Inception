@@ -1,0 +1,68 @@
+vmxalpine:~/srcs$ ls
+docker-compose.yml  requirements
+vmxalpine:~/srcs$ cat docker-compose.yml 
+version: "3.9"
+
+services:
+ nginx:
+  container_name: nginx
+  build: ./requirements/nginx
+  image: nginx
+  depends_on:
+   - wordpress
+  ports:
+   - "443:443"
+  networks:
+   - inception
+  restart: always
+  env_file:
+   - .env
+  volumes:
+   - wordpress_files:/var/www/html
+ 
+ wordpress:
+  container_name: wordpress
+  build: ./requirements/wordpress
+  image: wordpress
+  depends_on:
+   - mariadb
+  networks:
+   - inception
+  restart: always
+  env_file:
+   - .env
+  volumes:
+   - wordpress_files:/var/www/html
+   - wordpress_db:/var/lib/mysql
+
+ mariadb:
+  container_name: mariadb
+  build: ./requirements/mariadb
+  image: mariadb
+  networks:
+   - inception
+  restart: always
+  env_file:
+   - .env
+  volumes:
+   - wordpress_db:/var/lib/mysql
+
+networks:
+ inception:
+  driver: bridge
+
+volumes:
+ wordpress_db:
+  driver: local
+  name: wordpress_db
+  driver_opts:
+   type: none
+   o: bind
+   device: /home/smoore/data/wordpress_db
+ wordpress_files:
+  driver: local
+  name: wordpress_files
+  driver_opts:
+   type: none
+   o: bind
+   device: /home/smoore/data/wordpress_files
